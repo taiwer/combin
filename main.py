@@ -4,7 +4,7 @@ from gooey import Gooey, GooeyParser
 import glob
 
 @Gooey(program_name="MyTools",  # 修改窗口名称为 MyTools
-       default_size=(600, 500),
+       default_size=(600, 700),
        language='chinese',
        sidebar_title="功能",  # 添加侧边栏标题
        show_sidebar=True,
@@ -21,7 +21,7 @@ def main():
     parser_1.add_argument(
         'folder_path',
         metavar='文件夹路径',
-        help='选择包含xlsx文件的文件夹',
+        help='选择需要合并的数据所在文件夹',
         widget='DirChooser'  # 文件夹选择控件
     )
     
@@ -42,6 +42,17 @@ def main():
         widget='IntegerField',  # 整数输入框
         gooey_options={'min': 1, 'max': 1000}
     )
+
+    # 选择 xlsx或者csv
+    parser_1.add_argument(
+        '--file_type',
+        metavar='文件类型',
+        help='选择文件类型',
+        choices=['xlsx', 'csv'],
+        default='xlsx',
+        widget='Dropdown',  # 下拉选择框
+    )
+    
     
     # 解析参数
     args = parser.parse_args()
@@ -50,14 +61,19 @@ def main():
     folder_path = args.folder_path
     start_column = int(args.start_column) - 1  # 转换为0-based索引
     start_row = int(args.start_row) - 1  # 转换为0-based索引
+    file_type = args.file_type
     
     # 获取最低层文件夹名称
     folder_name = os.path.basename(folder_path)
     # 设置输出文件名
     output_file = os.path.join(os.path.dirname(folder_path), f"{folder_name}.xlsx")
     
-    # 获取所有xlsx文件
-    excel_files = glob.glob(os.path.join(folder_path, "*.xlsx"))
+    # 获取所有文件
+    excel_files = []
+    if file_type == 'xlsx':
+        excel_files = glob.glob(os.path.join(folder_path, "*.xlsx"))
+    elif file_type == 'csv':
+        excel_files = glob.glob(os.path.join(folder_path, "*.csv"))
     
     if not excel_files:
         raise ValueError("The selected folder does not contain any xlsx files!")
@@ -68,8 +84,12 @@ def main():
     # 遍历每个xlsx文件
     for file_index, file_path in enumerate(excel_files):
         try:
-            # 读取Excel文件
-            df = pd.read_excel(file_path)
+            df = None
+            # 读取文件
+            if file_type == 'xlsx':
+                df = pd.read_excel(file_path)
+            elif file_type == 'csv':
+                df = pd.read_csv(file_path, encoding='utf-8', sep=',')
             
             # 检查列数是否足够
             if start_column >= len(df.columns):
