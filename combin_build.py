@@ -13,7 +13,7 @@ def build_executable():
         '-F',           # 打包成单个可执行文件
         '-w',           # Windows GUI应用程序，无控制台窗口
         '-n', 'mytools.exe',  # 可执行文件名称
-        'main.py'       # 主程序文件
+        'combin.py'       # 主程序文件
     ]
     
     print("开始构建可执行文件...")
